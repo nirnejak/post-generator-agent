@@ -1,0 +1,15 @@
+design systems aren't about consistency, they're about freeing designers to focus on the hard problems instead of reinventing buttons #designsystems #ux
+
+hot take: the best design engineers don't pick sides between design and code. they just ship beautiful, functional things. #designengineering #webdev
+
+css has-selector is genuinely the most exciting thing to happen to styling in years. parent selectors were worth the wait #css #frontend
+
+just spent 3 hours tweaking a cubic-bezier curve. no regrets. motion design is what separates good interfaces from great ones #uidesign #animation
+
+unpopular opinion: most landing pages would convert better with 50% less content. whitespace is not wasted space #webdesign #ux
+
+the gap between figma and production is a design problem, not an engineering problem. if your designs can't be built, redesign them #figma #designops
+
+shipped a component library this week. the trick isn't making it comprehensive, it's making it so simple people actually use it #reactjs #designsystems
+
+every pixel you animate should earn its place. gratuitous motion is worse than no motion at all #motiondesign #a11y
