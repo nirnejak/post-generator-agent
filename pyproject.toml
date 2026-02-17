@@ -8,3 +8,8 @@ dependencies = [
     "python-dotenv>=1.2.1",
     "superserve>=0.1.3",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.1",
+]
