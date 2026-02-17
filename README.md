@@ -2,6 +2,12 @@
 
 CLI agent that generates tweet variations for designers, devs, and design engineers. Powered by the Claude Agent SDK.
 
+## Prerequisites
+
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/) package manager
+- `ANTHROPIC_API_KEY` environment variable
+
 ## Setup
 
 ```bash
@@ -31,11 +37,32 @@ Drafts are automatically saved to `drafts.json`.
 
 Edit `past_posts.txt` with your own tweets to have the agent match your voice and writing style.
 
-## Custom Tools
+## Lint and Format
+
+```bash
+# format
+uv run ruff format .
+
+# lint
+uv run ruff check .
+
+# lint and auto-fix
+uv run ruff check . --fix
+```
+
+## Project Structure
+
+| File | Description |
+|------|-------------|
+| `main.py` | Agent entry point, tools, system prompt, and REPL loop |
+| `past_posts.txt` | Example tweets for style matching (edit to match your voice) |
+| `drafts.json` | Generated tweet output (created at runtime, gitignored) |
+
+## Tools
 
 | Tool | Description |
 |------|-------------|
 | `save_drafts` | Saves generated tweets to `drafts.json` |
 | `load_past_posts` | Reads `past_posts.txt` for style matching |
-
-Built-in tools: `WebSearch` (trending topics), `WebFetch` (reference content).
+| `WebSearch` | Search for trending topics and current data |
+| `WebFetch` | Fetch reference content from the web |
