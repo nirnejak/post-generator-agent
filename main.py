@@ -4,6 +4,10 @@ import os
 from datetime import datetime
 from typing import Any
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
