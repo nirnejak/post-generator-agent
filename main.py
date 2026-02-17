@@ -3,11 +3,6 @@ import json
 import os
 from datetime import datetime
 from typing import Any
-
-from dotenv import load_dotenv
-
-load_dotenv()
-
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
@@ -18,6 +13,10 @@ from claude_agent_sdk import (
     create_sdk_mcp_server,
     tool,
 )
+
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DRAFTS_FILE = "drafts.json"
 PAST_POSTS_FILE = "past_posts.txt"
