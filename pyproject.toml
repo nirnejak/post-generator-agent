@@ -1,5 +1,5 @@
 [project]
-name = "post-generator"
+name = "post-generator-agent"
 version = "0.1.0"
 description = "Twitter/X post generator agent powered by Claude Agent SDK"
 requires-python = ">=3.12"
