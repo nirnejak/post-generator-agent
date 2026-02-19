@@ -1,5 +1,6 @@
 import asyncio
 import os
+import sys
 from typing import Any
 from claude_agent_sdk import (
     AssistantMessage,
@@ -11,6 +12,7 @@ from claude_agent_sdk import (
     create_sdk_mcp_server,
     tool,
 )
+from claude_agent_sdk.types import StreamEvent
 
 from dotenv import load_dotenv
 
@@ -102,6 +104,7 @@ async def main():
         ],
         permission_mode="acceptEdits",
         max_turns=15,
+        include_partial_messages=True,
     )
 
     async with ClaudeSDKClient(options=options) as client:
@@ -123,12 +126,22 @@ async def main():
             await client.query(prompt)
 
             async for message in client.receive_response():
-                if isinstance(message, AssistantMessage):
-                    for block in message.content:
-                        if isinstance(block, TextBlock):
-                            print(block.text)
-                        elif isinstance(block, ToolUseBlock):
-                            print(f"  [{block.name}]")
+                if isinstance(message, StreamEvent):
+                    event = message.event
+                    event_type = event.get("type")
+                    if event_type == "content_block_delta":
+                        delta = event.get("delta", {})
+                        if delta.get("type") == "text_delta":
+                            print(delta["text"], end="")
+                            sys.stdout.flush()
+                    elif event_type == "content_block_start":
+                        block = event.get("content_block", {})
+                        if block.get("type") == "tool_use":
+                            print(f"\n  [Using {block.get('name')}...]")
+                            sys.stdout.flush()
+
+                elif isinstance(message, AssistantMessage):
+                    pass  # already streamed via StreamEvent
 
                 elif isinstance(message, ResultMessage):
                     cost = message.total_cost_usd
