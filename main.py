@@ -1,7 +1,5 @@
 import asyncio
-import json
 import os
-from datetime import datetime
 from typing import Any
 from claude_agent_sdk import (
     AssistantMessage,
@@ -18,47 +16,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-DRAFTS_FILE = "drafts.json"
 PAST_POSTS_FILE = "past_posts.txt"
-
-
-@tool(
-    "save_drafts",
-    "Save generated tweet drafts to a JSON file. Call this after generating tweets.",
-    {"drafts": str},
-)
-async def save_drafts(args: dict[str, Any]) -> dict[str, Any]:
-    """Save tweet drafts to drafts.json with timestamp."""
-    try:
-        drafts_text = args["drafts"]
-
-        existing = []
-        if os.path.exists(DRAFTS_FILE):
-            with open(DRAFTS_FILE, "r") as f:
-                existing = json.load(f)
-
-        entry = {
-            "timestamp": datetime.now().isoformat(),
-            "drafts": drafts_text,
-        }
-        existing.append(entry)
-
-        with open(DRAFTS_FILE, "w") as f:
-            json.dump(existing, f, indent=2)
-
-        return {
-            "content": [
-                {
-                    "type": "text",
-                    "text": f"Saved drafts to {DRAFTS_FILE} ({len(existing)} total entries)",
-                }
-            ]
-        }
-    except Exception as e:
-        return {
-            "content": [{"type": "text", "text": f"Error saving drafts: {e}"}],
-            "is_error": True,
-        }
 
 
 @tool(
@@ -120,8 +78,7 @@ Your job: take a topic, project description, or design concept and generate 3-4 
 ## Workflow
 1. FIRST: use load_past_posts to read the user's past tweets and match their voice/style
 2. Optionally use WebSearch if the topic benefits from current trends or data
-3. Generate the tweet variations
-4. ALWAYS use save_drafts to save the generated tweets
+3. Generate the tweet variations and output them directly
 
 ## Format
 Label each tweet with its type and number them. Show character count for each.
@@ -132,14 +89,13 @@ async def main():
     posts_server = create_sdk_mcp_server(
         name="posts",
         version="1.0.0",
-        tools=[save_drafts, load_past_posts],
+        tools=[load_past_posts],
     )
 
     options = ClaudeAgentOptions(
         system_prompt=SYSTEM_PROMPT,
         mcp_servers={"posts": posts_server},
         allowed_tools=[
-            "mcp__posts__save_drafts",
             "mcp__posts__load_past_posts",
             "WebSearch",
             "WebFetch",
@@ -147,16 +103,6 @@ async def main():
         permission_mode="acceptEdits",
         max_turns=15,
     )
-
-    print("=" * 50)
-    print("  Twitter/X Post Generator")
-    print("  powered by Claude Agent SDK")
-    print("=" * 50)
-    print()
-    print("Enter a topic, project description, or design")
-    print("concept and get 3-4 tweet variations.")
-    print("Type 'quit' to exit.")
-    print()
 
     async with ClaudeSDKClient(options=options) as client:
         while True:
