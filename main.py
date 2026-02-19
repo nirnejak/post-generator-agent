@@ -107,7 +107,7 @@ async def main():
     async with ClaudeSDKClient(options=options) as client:
         while True:
             try:
-                topic = input("Topic: ").strip()
+                topic = input("Topic for post: ").strip()
             except (EOFError, KeyboardInterrupt):
                 print("\nbye!")
                 break
