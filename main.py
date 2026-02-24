@@ -18,6 +18,9 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from superserve import App
+app = App(name="post-generator-agent")   
+
 PAST_POSTS_FILE = "past_posts.txt"
 
 
@@ -87,6 +90,7 @@ Label each tweet with its type and number them. Show character count for each.
 """
 
 
+@app.session
 async def main():
     posts_server = create_sdk_mcp_server(
         name="posts",
