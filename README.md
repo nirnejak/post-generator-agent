@@ -1,6 +1,6 @@
 # Twitter/X Post Generator
 
-CLI agent that generates tweet variations for designers, devs, and design engineers. Powered by the Claude Agent SDK.
+CLI agent that generates tweet variations for designers, devs, and design engineers. Powered by the Claude Agent SDK with real-time token streaming.
 
 ## Prerequisites
 
@@ -11,10 +11,7 @@ CLI agent that generates tweet variations for designers, devs, and design engine
 ## Setup
 
 ```bash
-# install dependencies
 uv sync
-
-# set your API key
 export ANTHROPIC_API_KEY=your-api-key
 ```
 
@@ -24,45 +21,23 @@ export ANTHROPIC_API_KEY=your-api-key
 uv run main.py
 ```
 
-Enter a topic, project description, or design concept. The agent generates 3-4 tweet variations:
+Enter a topic and the agent streams 3-4 tweet variations in real-time:
 
 - **Punchy/opinionated** — a strong take
 - **Educational/tip-style** — a useful insight
 - **Conversational/relatable** — community resonance
 - **Engagement-optimized** — question or hot take
 
-Drafts are automatically saved to `drafts.json`.
+Runs as an interactive REPL — keep entering topics, type `quit` to exit.
 
 ## Style Matching
 
 Edit `past_posts.txt` with your own tweets to have the agent match your voice and writing style.
 
-## Lint and Format
+## Development
 
 ```bash
-# format
-uv run ruff format .
-
-# lint
-uv run ruff check .
-
-# lint and auto-fix
-uv run ruff check . --fix
+uv run ruff format .        # format
+uv run ruff check .         # lint
+uv run ruff check . --fix   # lint with auto-fix
 ```
-
-## Project Structure
-
-| File | Description |
-|------|-------------|
-| `main.py` | Agent entry point, tools, system prompt, and REPL loop |
-| `past_posts.txt` | Example tweets for style matching (edit to match your voice) |
-| `drafts.json` | Generated tweet output (created at runtime, gitignored) |
-
-## Tools
-
-| Tool | Description |
-|------|-------------|
-| `save_drafts` | Saves generated tweets to `drafts.json` |
-| `load_past_posts` | Reads `past_posts.txt` for style matching |
-| `WebSearch` | Search for trending topics and current data |
-| `WebFetch` | Fetch reference content from the web |
