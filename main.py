@@ -1,7 +1,6 @@
-import asyncio
 import os
-import sys
 from typing import Any
+
 from claude_agent_sdk import (
     AssistantMessage,
     ClaudeAgentOptions,
@@ -12,14 +11,10 @@ from claude_agent_sdk import (
     create_sdk_mcp_server,
     tool,
 )
-from claude_agent_sdk.types import StreamEvent
-
-from dotenv import load_dotenv
-
-load_dotenv()
 
 from superserve import App
-app = App(name="post-generator-agent")   
+
+app = App(name="post-generator-agent")
 
 PAST_POSTS_FILE = "past_posts.txt"
 
@@ -89,70 +84,48 @@ Your job: take a topic, project description, or design concept and generate 3-4 
 Label each tweet with its type and number them. Show character count for each.
 """
 
+posts_server = create_sdk_mcp_server(
+    name="posts",
+    version="1.0.0",
+    tools=[load_past_posts],
+)
+
+options = ClaudeAgentOptions(
+    system_prompt=SYSTEM_PROMPT,
+    mcp_servers={"posts": posts_server},
+    allowed_tools=[
+        "mcp__posts__load_past_posts",
+        "WebSearch",
+        "WebFetch",
+    ],
+    permission_mode="acceptEdits",
+    max_turns=15,
+    include_partial_messages=True,
+)
+
 
 @app.session
-async def main():
-    posts_server = create_sdk_mcp_server(
-        name="posts",
-        version="1.0.0",
-        tools=[load_past_posts],
-    )
-
-    options = ClaudeAgentOptions(
-        system_prompt=SYSTEM_PROMPT,
-        mcp_servers={"posts": posts_server},
-        allowed_tools=[
-            "mcp__posts__load_past_posts",
-            "WebSearch",
-            "WebFetch",
-        ],
-        permission_mode="acceptEdits",
-        max_turns=15,
-        include_partial_messages=True,
-    )
-
+async def main(session):
     async with ClaudeSDKClient(options=options) as client:
-        while True:
-            try:
-                topic = input("Topic for post: ").strip()
-            except (EOFError, KeyboardInterrupt):
-                print("\nbye!")
-                break
+        async for topic, stream in session.turns():
+            stream.status("Generating tweets...")
 
-            if not topic:
-                continue
-            if topic.lower() in ("quit", "exit", "q"):
-                print("bye!")
-                break
+            await client.query(
+                prompt=f"Generate tweet variations about: {topic}",
+                session_id="chat",
+            )
 
-            prompt = f"Generate tweet variations about: {topic}"
-
-            await client.query(prompt)
-
-            async for message in client.receive_response():
-                if isinstance(message, StreamEvent):
-                    event = message.event
-                    event_type = event.get("type")
-                    if event_type == "content_block_delta":
-                        delta = event.get("delta", {})
-                        if delta.get("type") == "text_delta":
-                            print(delta["text"], end="")
-                            sys.stdout.flush()
-                    elif event_type == "content_block_start":
-                        block = event.get("content_block", {})
-                        if block.get("type") == "tool_use":
-                            print(f"\n  [Using {block.get('name')}...]")
-                            sys.stdout.flush()
-
-                elif isinstance(message, AssistantMessage):
-                    pass  # already streamed via StreamEvent
-
-                elif isinstance(message, ResultMessage):
-                    cost = message.total_cost_usd
-                    if cost is not None:
-                        print(f"\n  cost: ${cost:.4f}")
-                    print()
+            async for msg in client.receive_response():
+                if isinstance(msg, AssistantMessage):
+                    for block in msg.content:
+                        if isinstance(block, TextBlock):
+                            stream.write(block.text)
+                        elif isinstance(block, ToolUseBlock):
+                            stream.status(f"Using {block.name}...")
+                elif isinstance(msg, ResultMessage):
+                    if msg.total_cost_usd is not None:
+                        stream.metadata({"cost_usd": msg.total_cost_usd})
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    app.run()
